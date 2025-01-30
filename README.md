@@ -1,97 +1,141 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native Google Login with Firebase
 
-# Getting Started
+This project demonstrates how to integrate Google Sign-In with Firebase in a React Native application.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Prerequisites
 
-## Step 1: Start Metro
+Before proceeding, ensure you have the following installed:
+- Node.js (Latest LTS version)
+- React Native CLI or Expo
+- Firebase Console Access
+- Android Studio (for Android development)
+- Xcode (for iOS development on macOS)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Step 1: Create a Firebase Project
+1. Go to the [Firebase Console](https://console.firebase.google.com/).
+2. Click on `Create a project` and follow the setup steps.
+3. Once created, navigate to `Authentication > Sign-in method`.
+4. Enable `Google` as a sign-in provider and configure the required fields.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Step 2: Add Firebase to Your React Native App
 
-```sh
-# Using npm
-npm start
+### For React Native CLI:
+1. Install Firebase dependencies:
+   ```sh
+   npm install @react-native-firebase/app @react-native-firebase/auth
+   ```
+2. Link the modules (if required for older versions):
+   ```sh
+   npx react-native link
+   ```
+3. Add Google services files:
+   - Download `google-services.json` (for Android) from Firebase Console and place it inside `android/app/`.
+   - Download `GoogleService-Info.plist` (for iOS) and place it inside `ios/`.
 
-# OR using Yarn
-yarn start
+### For Expo (Managed Workflow):
+1. Install the required packages:
+   ```sh
+   npx expo install expo-auth-session expo-random firebase
+   ```
+2. Update `app.json` or `app.config.js` to include:
+   ```json
+   "expo": {
+     "android": {
+       "googleServicesFile": "./google-services.json"
+     },
+     "ios": {
+       "googleServicesFile": "./GoogleService-Info.plist"
+     }
+   }
+   ```
+
+## Step 3: Configure Google Sign-In
+
+### Android Setup:
+1. Add SHA-1 and SHA-256 fingerprints in Firebase:
+   ```sh
+   keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android
+   ```
+   Copy SHA-1 and add it in Firebase under `Project Settings > Your apps > SHA Certificate fingerprints`.
+2. In `android/build.gradle`, ensure:
+   ```gradle
+   classpath("com.google.gms:google-services:4.3.10")
+   ```
+3. In `android/app/build.gradle`, add:
+   ```gradle
+   apply plugin: 'com.google.gms.google-services'
+   ```
+
+### iOS Setup:
+1. Install CocoaPods dependencies:
+   ```sh
+   cd ios && pod install && cd ..
+   ```
+2. Add URL Schemes in `Info.plist`:
+   ```xml
+   <key>CFBundleURLTypes</key>
+   <array>
+     <dict>
+       <key>CFBundleURLSchemes</key>
+       <array>
+         <string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+       </array>
+     </dict>
+   </array>
+   ```
+
+## Step 4: Implement Google Login in React Native
+
+### Code Implementation:
+Create a `GoogleLogin.js` component:
+
+```javascript
+import React from 'react';
+import { View, Button } from 'react-native';
+import auth from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+GoogleSignin.configure({
+  webClientId: 'YOUR_WEB_CLIENT_ID',
+});
+
+const GoogleLogin = () => {
+  const signInWithGoogle = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const { idToken } = await GoogleSignin.signIn();
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      await auth().signInWithCredential(googleCredential);
+      console.log('User signed in!');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <View>
+      <Button title="Sign in with Google" onPress={signInWithGoogle} />
+    </View>
+  );
+};
+
+export default GoogleLogin;
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
+## Step 5: Run the Application
+For Android:
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+npx react-native run-android
+```
+For iOS:
+```sh
+npx react-native run-ios
+```
+For Expo:
+```sh
+npx expo start
 ```
 
-### iOS
+## Conclusion
+You have successfully integrated Google Sign-In with Firebase in your React Native app! 🎉
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
