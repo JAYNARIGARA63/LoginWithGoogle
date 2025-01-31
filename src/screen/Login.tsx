@@ -60,6 +60,7 @@ const Login = () => {
           label={'email'}
           placeholder="email"
         />
+
         <CommonTextInput
           onChangeText={text => handleTextInput('password', text)}
           label={'password'}
